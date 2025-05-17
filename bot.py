@@ -163,7 +163,7 @@ async def lego(client, message: Message):
         
         # Font ayarları (font dosyalarının yolunu kontrol edin)
         try:
-            font = ImageFont.truetype("fonts/fonts/arial.ttf", 120)  # Varsayılan font
+            font = ImageFont.truetype("fonts/fonts/FontRemix.ttf", 120)  # Varsayılan font
             # Eğer özel fontlar kullanıyorsanız:
             # font = ImageFont.truetype("./fonts/yourfont.ttf", 120)
         except:
