@@ -139,12 +139,10 @@ LOGO_LINKS = [
 ]
 
 # logos
-
 @Mukesh.on_message(filters.command(["logo", f"logo@{BOT_USERNAME}"]))
 async def lego(client, message: Message):
     fname = None
     try:
-        # Komuttan sonra gelen metni al
         if len(message.command) < 2:
             await message.reply("❌ Lütfen bir metin belirtin.\nÖrnek: `/logo Ceren`")
             return
@@ -152,7 +150,6 @@ async def lego(client, message: Message):
         text = " ".join(message.command[1:])
         pesan = await message.reply("**Logo oluşturuluyor, lütfen bekleyin...**")
         
-        # Rastgele bir logo arkaplanı seç
         randc = random.choice(LOGO_LINKS)
         response = requests.get(randc)
         response.raise_for_status()
@@ -161,7 +158,6 @@ async def lego(client, message: Message):
         draw = ImageDraw.Draw(img)
         image_widthz, image_heightz = img.size
         
-        # Font ayarları
         try:
             font = ImageFont.truetype("arial.ttf", 120)
         except:
@@ -170,23 +166,19 @@ async def lego(client, message: Message):
             except:
                 font = ImageFont.load_default()
         
-        # Metin boyutlarını hesapla
         lw, th, rw, bh = font.getbbox(text)
         w, h = rw - lw, bh - th
         h += int(h * 0.21)
         
-        # Metni resmin ortasına yerleştir
         x = (image_widthz - w) / 2
         y = (image_heightz - h) / 2
         
-        # Metni çiz
         draw.text((x, y), text, font=font, fill="white", stroke_width=2, stroke_fill="black")
         
-        # Geçici dosya adı
         fname = f"logo_{message.from_user.id}_{message.id}.png"
         img.save(fname, "PNG")
         
-        # Kullanıcıya gönder
+        # DÜZELTME: Parantez hatası giderildi
         await client.send_photo(
             chat_id=message.chat.id,
             photo=fname,
@@ -199,14 +191,12 @@ async def lego(client, message: Message):
         await message.reply(f"❌ Logo oluşturulurken hata: {str(e)}")
         logging.error(f"Logo hatası: {str(e)}", exc_info=True)
     finally:
-        # İşlem mesajını sil
         if 'pesan' in locals():
             try:
                 await pesan.delete()
             except:
                 pass
         
-        # Geçici dosyayı sil
         if fname and os.path.exists(fname):
             try:
                 os.remove(fname)
@@ -214,6 +204,7 @@ async def lego(client, message: Message):
                 pass
 
         
+                        
 
 
 
