@@ -161,10 +161,10 @@ async def lego(client, message: Message):
             
             # Font ayarları (3 farklı font denemesi)
             try:
-                font = ImageFont.truetype("Default.ttf", 120)
+                font = ImageFont.truetype("./fonts/default.ttf", 120)
             except:
                 try:
-                    font = ImageFont.truetype("./fonts/Default.ttf", 120)
+                    font = ImageFont.truetype("./fonts/default.ttf", 120)
                 except:
                     font = ImageFont.load_default()
 
