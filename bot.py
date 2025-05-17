@@ -141,69 +141,82 @@ LOGO_LINKS = [
 # logos
 @Mukesh.on_message(filters.command(["logo", f"logo@{BOT_USERNAME}"]))
 async def lego(client, message: Message):
-    fname = None
     try:
+        # Komut kontrolü
         if len(message.command) < 2:
             await message.reply("❌ Lütfen bir metin belirtin.\nÖrnek: `/logo Ceren`")
             return
-            
-        text = " ".join(message.command[1:])
-        pesan = await message.reply("**Logo oluşturuluyor, lütfen bekleyin...**")
-        
-        randc = random.choice(LOGO_LINKS)
-        response = requests.get(randc)
-        response.raise_for_status()
-        
-        img = Image.open(BytesIO(response.content))
-        draw = ImageDraw.Draw(img)
-        image_widthz, image_heightz = img.size
-        
-        try:
-            font = ImageFont.truetype("arial.ttf", 120)
-        except:
-            try:
-                font = ImageFont.truetype("./fonts/font1.ttf", 120)
-            except:
-                font = ImageFont.load_default()
-        
-        lw, th, rw, bh = font.getbbox(text)
-        w, h = rw - lw, bh - th
-        h += int(h * 0.21)
-        
-        x = (image_widthz - w) / 2
-        y = (image_heightz - h) / 2
-        
-        draw.text((x, y), text, font=font, fill="white", stroke_width=2, stroke_fill="black")
-        
-        fname = f"logo_{message.from_user.id}_{message.id}.png"
-        img.save(fname, "PNG")
-        
-        # DÜZELTME: Parantez hatası giderildi
-        await client.send_photo(
-            chat_id=message.chat.id,
-            photo=fname,
-            caption=f"✨ {BOT_NAME} tarafından oluşturuldu\n💖 @{SUPPORT_GRP}",
-            reply_markup=InlineKeyboardMarkup(PNG_BTN)
-        
-    except requests.exceptions.RequestException as e:
-        await message.reply(f"❌ Logo resmi indirilirken hata: {str(e)}")
-    except Exception as e:
-        await message.reply(f"❌ Logo oluşturulurken hata: {str(e)}")
-        logging.error(f"Logo hatası: {str(e)}", exc_info=True)
-    finally:
-        if 'pesan' in locals():
-            try:
-                await pesan.delete()
-            except:
-                pass
-        
-        if fname and os.path.exists(fname):
-            try:
-                os.remove(fname)
-            except:
-                pass
 
+        # Logo oluşturma mesajı
+        processing_msg = await message.reply("**🔄 Logo oluşturuluyor, lütfen bekleyin...**")
+
+        # Rastgele arkaplan seçimi
+        bg_url = random.choice(LOGO_LINKS)
+        response = requests.get(bg_url)
+        response.raise_for_status()
+
+        # Görsel işleme
+        with Image.open(BytesIO(response.content)) as img:
+            draw = ImageDraw.Draw(img)
+            
+            # Font ayarları (3 farklı font denemesi)
+            try:
+                font = ImageFont.truetype("Default.ttf", 120)
+            except:
+                try:
+                    font = ImageFont.truetype("./fonts/Default.ttf", 120)
+                except:
+                    font = ImageFont.load_default()
+
+            text = " ".join(message.command[1:])
+            
+            # Metin boyutları ve konumu
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            x = (img.width - text_width) / 2
+            y = (img.height - text_height) / 2
+            
+            # Metni çiz
+            draw.text(
+                (x, y), 
+                text, 
+                font=font, 
+                fill="white", 
+                stroke_width=2, 
+                stroke_fill="black"
+            )
+
+            # Geçici dosyaya kaydet
+            temp_file = f"logo_{message.from_user.id}.png"
+            img.save(temp_file, "PNG")
+
+            # Kullanıcıya gönder
+            await message.reply_photo(
+                photo=temp_file,
+                caption=f"✨ {BOT_NAME} tarafından oluşturuldu\n💖 @{SUPPORT_GRP}",
+                reply_markup=InlineKeyboardMarkup(PNG_BTN)
+            )
+
+        # İşlem mesajını sil
+        await processing_msg.delete()
+
+    except requests.RequestException as e:
+        await message.reply(f"❌ Hata: Arkaplan resmi yüklenemedi\n{str(e)}")
+    except Exception as e:
+        await message.reply(f"❌ Logo oluşturulurken hata:\n{str(e)}")
+    finally:
+        # Temizlik
+        if 'temp_file' in locals() and os.path.exists(temp_file):
+            os.remove(temp_file)
+        if 'processing_msg' in locals():
+            try:
+                await processing_msg.delete()
+            except:
+                pass
         
+        
+                
                         
 
 
