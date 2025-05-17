@@ -6,6 +6,7 @@ API_HASH = os.environ.get("API_HASH", "cedfb5fb4ffee7ecc746b28afc7925e3")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "") 
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "LunaGramBot") 
 SUDO_USERS = list(map(int, os.environ.get("SUDO", "5910057231").split()))  # Çoklu sudo desteği
+BOT_NAME = os.environ.get("BOT_NAME", "THENA")
 
 # Bot Görselleri
 START_IMG = os.environ.get("START_IMG", "https://telegra.ph/file/4746e2442a584f37dcc86.jpg")
