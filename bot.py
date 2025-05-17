@@ -1,7 +1,6 @@
-##-----------CREDITS -----------
-# telegram : @legend_coder
-# github : noob-mukesh
 import os
+from io import BytesIO  
+import random  
 from pyrogram import Client, filters, idle
 from pyrogram.errors import ApiIdInvalid, ApiIdPublishedFlood, AccessTokenInvalid
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
@@ -140,34 +139,41 @@ LOGO_LINKS = [
 ]
 
 # logos
+
 @Mukesh.on_message(filters.command(["logo", f"logo@{BOT_USERNAME}"]))
 async def lego(client, message: Message):
+    fname = None  # Başlangıçta None olarak tanımla
     try:
         # Komuttan sonra gelen metni al (örnek: /logo Ceren)
-        text = " ".join(message.command[1:])
-        
-        if not text:
+        if len(message.command) < 2:
             await message.reply("❌ Lütfen bir metin belirtin.\nÖrnek: `/logo Ceren`")
             return
             
+        text = " ".join(message.command[1:])
         pesan = await message.reply("**Logo oluşturuluyor, lütfen bekleyin...**")
         
         # Rastgele bir logo arkaplanı seç
-        randc = choice(LOGO_LINKS)
+        randc = random.choice(LOGO_LINKS)
         response = requests.get(randc)
+        response.raise_for_status()  # HTTP hatalarını yakala
+        
         img = Image.open(BytesIO(response.content))
         
         # Logo oluşturma işlemleri
         draw = ImageDraw.Draw(img)
         image_widthz, image_heightz = img.size
         
-        # Font ayarları (font dosyalarının yolunu kontrol edin)
+        # Font ayarları
         try:
-            font = ImageFont.truetype("fonts/fonts/FontRemix.ttf", 120)  # Varsayılan font
-            # Eğer özel fontlar kullanıyorsanız:
-            # font = ImageFont.truetype("./fonts/yourfont.ttf", 120)
+            # Önce sistemdeki bir fontu deneyelim
+            font = ImageFont.truetype("arial.ttf", 120)
         except:
-            font = ImageFont.load_default()
+            try:
+                # Varsa özel fontlarınızı deneyin
+                font = ImageFont.truetype("./fonts/font1.ttf", 120)
+            except:
+                # Hiçbiri yoksa varsayılan font
+                font = ImageFont.load_default()
         
         # Metin boyutlarını hesapla
         lw, th, rw, bh = font.getbbox(text)
@@ -181,28 +187,36 @@ async def lego(client, message: Message):
         # Metni çiz (beyaz renk, siyah kontur)
         draw.text((x, y), text, font=font, fill="white", stroke_width=2, stroke_fill="black")
         
-        # Geçici dosya olarak kaydet
-        fname = f"logo_{message.from_user.id}.png"
+        # Geçici dosya adını oluştur
+        fname = f"logo_{message.from_user.id}_{message.id}.png"
         img.save(fname, "PNG")
         
         # Kullanıcıya gönder
-        await message.reply_photo(
+        await client.send_photo(
+            chat_id=message.chat.id,
             photo=fname,
             caption=f"✨ {BOT_NAME} tarafından oluşturuldu\n💖 @{SUPPORT_GRP}",
             reply_markup=InlineKeyboardMarkup(PNG_BTN)
-        )
         
-        # İşlem mesajını sil
-        await pesan.delete()
-        
+    except requests.exceptions.RequestException as e:
+        await message.reply(f"❌ Logo resmi indirilirken hata: {str(e)}")
     except Exception as e:
         await message.reply(f"❌ Logo oluşturulurken hata: {str(e)}")
-        logging.error(f"Logo hatası: {str(e)}")
-        
+        logging.error(f"Logo hatası: {str(e)}", exc_info=True)
     finally:
+        # İşlem mesajını sil
+        if 'pesan' in locals():
+            try:
+                await pesan.delete()
+            except:
+                pass
+        
         # Geçici dosyayı sil
-        if os.path.exists(fname):
-            os.remove(fname)
+        if fname and os.path.exists(fname):
+            try:
+                os.remove(fname)
+            except:
+                pass
         
 
 
