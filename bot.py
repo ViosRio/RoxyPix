@@ -380,7 +380,7 @@ async def lego(event):
         img = Image.open(io.BytesIO(requests.get(randc).content))
         draw = ImageDraw.Draw(img)
         image_widthz, image_heightz = img.size
-        fnt = glob.glob("./fonts/*")
+        fnt = glob.glob("./fonts/fonts*")
         randf = random.choice(fnt)
         font = ImageFont.truetype(randf, 120)
         lw, th, rw, bh = font.getbbox(text)
@@ -414,7 +414,7 @@ async def lego(event):
         img = Image.open(io.BytesIO(requests.get(randc).content))
         draw = ImageDraw.Draw(img)
         image_widthz, image_heightz = img.size
-        fnt = glob.glob("./fonts/*")
+        fnt = glob.glob("./fonts/fonts*")
         randf = random.choice(fnt)
         font = ImageFont.truetype(randf, 120)
         lw, th, rw, bh = font.getbbox(text)
