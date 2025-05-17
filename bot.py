@@ -139,84 +139,71 @@ LOGO_LINKS = [
     "https://telegra.ph/file/9849b3940f063b065f4e3.jpg",
 ]
 
-
+# logos
 @Mukesh.on_message(filters.command(["logo", f"logo@{BOT_USERNAME}"]))
-async def lego(event):
-    quew = event.pattern_match.group(1)
-    if event.sender_id != OWNER_ID and not quew:
-        await event.reply(
-            "\nKULLANIM : `/logo ceren`"
-        )
-        return
-    pesan = await event.reply("**ᴄʀᴇᴀᴛɪɴɢ ʏᴏᴜʀ ʀᴇǫᴜᴇsᴛᴇᴅ ʟᴏɢᴏ ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ ᴀ sᴇᴄ...**")
+async def lego(client, message: Message):
     try:
-        text = event.pattern_match.group(1)
-        randc = random.choice(LOGO_LINKS)
-        img = Image.open(io.BytesIO(requests.get(randc).content))
+        # Komuttan sonra gelen metni al (örnek: /logo Ceren)
+        text = " ".join(message.command[1:])
+        
+        if not text:
+            await message.reply("❌ Lütfen bir metin belirtin.\nÖrnek: `/logo Ceren`")
+            return
+            
+        pesan = await message.reply("**Logo oluşturuluyor, lütfen bekleyin...**")
+        
+        # Rastgele bir logo arkaplanı seç
+        randc = choice(LOGO_LINKS)
+        response = requests.get(randc)
+        img = Image.open(BytesIO(response.content))
+        
+        # Logo oluşturma işlemleri
         draw = ImageDraw.Draw(img)
         image_widthz, image_heightz = img.size
-        fnt = glob.glob("./fonts/fonts*")
-        randf = random.choice(fnt)
-        font = ImageFont.truetype(randf, 120)
+        
+        # Font ayarları (font dosyalarının yolunu kontrol edin)
+        try:
+            font = ImageFont.truetype("fonts/fonts/arial.ttf", 120)  # Varsayılan font
+            # Eğer özel fontlar kullanıyorsanız:
+            # font = ImageFont.truetype("./fonts/yourfont.ttf", 120)
+        except:
+            font = ImageFont.load_default()
+        
+        # Metin boyutlarını hesapla
         lw, th, rw, bh = font.getbbox(text)
         w, h = rw - lw, bh - th
         h += int(h * 0.21)
-        image_width, image_height = img.size
-        draw.text(
-            ((image_widthz - w) / 2, (image_heightz - h) / 2),
-            text,
-            font=font,
-            fill=(255, 255, 255),
-        )
+        
+        # Metni resmin ortasına yerleştir
         x = (image_widthz - w) / 2
-        y = (image_heightz - h) / 2 + 6
-        draw.text(
-            (x, y), text, font=font, fill="white", stroke_width=1, stroke_fill="black"
+        y = (image_heightz - h) / 2
+        
+        # Metni çiz (beyaz renk, siyah kontur)
+        draw.text((x, y), text, font=font, fill="white", stroke_width=2, stroke_fill="black")
+        
+        # Geçici dosya olarak kaydet
+        fname = f"logo_{message.from_user.id}.png"
+        img.save(fname, "PNG")
+        
+        # Kullanıcıya gönder
+        await message.reply_photo(
+            photo=fname,
+            caption=f"✨ {BOT_NAME} tarafından oluşturuldu\n💖 @{SUPPORT_GRP}",
+            reply_markup=InlineKeyboardMarkup(PNG_BTN)
         )
-        fname = "cerenlovely.png"
-        img.save(fname, "png")
-        await telethn.send_file(
-            event.chat_id,
-            file=fname,
-            caption=f"ʟᴏɢᴏ ɢᴇɴᴇʀᴀᴛᴇᴅ ʙʏ [ CERENS ART ](https://t.me/ViosTeam)",
-        )
+        
+        # İşlem mesajını sil
         await pesan.delete()
+        
+    except Exception as e:
+        await message.reply(f"❌ Logo oluşturulurken hata: {str(e)}")
+        logging.error(f"Logo hatası: {str(e)}")
+        
+    finally:
+        # Geçici dosyayı sil
         if os.path.exists(fname):
             os.remove(fname)
-    except Exception:
-        text = event.pattern_match.group(1)
-        randc = random.choice(LOGO_LINKS)
-        img = Image.open(io.BytesIO(requests.get(randc).content))
-        draw = ImageDraw.Draw(img)
-        image_widthz, image_heightz = img.size
-        fnt = glob.glob("./fonts/fonts*")
-        randf = random.choice(fnt)
-        font = ImageFont.truetype(randf, 120)
-        lw, th, rw, bh = font.getbbox(text)
-        w, h = rw - lw, bh - th
-        h += int(h * 0.21)
-        image_width, image_height = img.size
-        draw.text(
-            ((image_widthz - w) / 2, (image_heightz - h) / 2),
-            text,
-            font=font,
-            fill=(255, 255, 255),
-        )
-        x = (image_widthz - w) / 2
-        y = (image_heightz - h) / 2 + 6
-        draw.text(
-            (x, y), text, font=font, fill="white", stroke_width=1, stroke_fill="black"
-        )
-        fname = "fallen.png"
-        img.save(fname, "png")
-        await telethn.send_file(
-            event.chat_id,
-            file=fname,
-            caption=f"ʟᴏɢᴏ ɢᴇɴᴇʀᴀᴛᴇᴅ ʙʏ [{BOT_NAME}](https://t.me/{BOT_USERNAME})",
-        )
-        await pesan.delete()
-        if os.path.exists(fname):
-            os.remove(fname)
+        
 
 
 
