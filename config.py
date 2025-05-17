@@ -1,9 +1,9 @@
 import os
 API_ID = int(os.environ.get("API_ID", "20658336"))
 API_HASH = os.environ.get("API_HASH", "cedfb5fb4ffee7ecc746b28afc7925e3") 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "{BOT_TOKEN}") 
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "BOT TOKEN") 
 OPENAI_KEY = os.environ.get("OPENAI_KEY", "")
-BOT_USERNAME = os.environ.get("BOT_USERNAME" , "CerenYtdlBot") 
+BOT_USERNAME = os.environ.get("BOT_USERNAME" , "LunaGramBot") 
 SUDO=os.environ.get("SUDO","5910057231")
 BOT_NAME = os.environ.get("BOT_NAME", "ᴛʜᴇɴᴀ ᴀɪ")
 START_IMG = os.environ.get("START_IMG","https://telegra.ph/file/4746e2442a584f37dcc86.jpg")
