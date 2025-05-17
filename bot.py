@@ -155,7 +155,150 @@ async def ping(client, message: Message):
        )
 
 # GÖRSEL EDİTOR KODU BURAYA ATALIM KANKİ
+  #-----------PHOTO EDITOR & FILE CONVERTER------------
+@Mukesh.on_message(filters.command(["sephia", "real", "bw", "enhance"]) & filters.reply)
+async def photo_effects(client, message: Message):
+    try:
+        # Kullanıcının yanıtladığı mesajı kontrol et
+        replied = message.reply_to_message
+        if not replied.photo:
+            await message.reply_text("❌ Lütfen bir fotoğrafı yanıtlayın!")
+            return
 
+        # Kullanıcıyı bilgilendirme
+        msg = await message.reply_text("✨ Sihrimi uyguluyorum...")
+        
+        # Fotoğrafı indir
+        photo_path = await replied.download()
+        
+        # Efekte göre işlem yap
+        command = message.command[0]
+        output_path = f"edited_{command}.jpg"
+        
+        if command == "sephia":
+            await apply_sepia(photo_path, output_path)
+        elif command == "bw":
+            await apply_blackwhite(photo_path, output_path)
+        elif command == "enhance":
+            await enhance_photo(photo_path, output_path)
+        elif command == "real":
+            await apply_real_effect(photo_path, output_path)
+        
+        # Kullanıcıya gönder
+        await message.reply_photo(
+            photo=output_path,
+            caption=f"🏆 İşte {command} efekti uygulanmış hali!",
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("❤️ Daha Fazla Efekt", callback_data="more_effects")]
+            )
+        )
+        
+        # Temizlik
+        os.remove(photo_path)
+        os.remove(output_path)
+        await msg.delete()
+        
+    except Exception as e:
+        await message.reply_text(f"❌ Hata oluştu: {str(e)}")
+
+#-----------FILE CONVERTER------------
+@Mukesh.on_message(filters.document)
+async def handle_documents(client, message: Message):
+    file_type = message.document.file_name.split('.')[-1].lower()
+    
+    # Butonlar oluştur
+    buttons = []
+    
+    if file_type in ["txt", "csv", "sql"]:
+        buttons.append([InlineKeyboardButton("📄 SQL'e Dönüştür", callback_data="convert_sql")])
+        buttons.append([InlineKeyboardButton("📊 CSV'ye Dönüştür", callback_data="convert_csv")])
+    
+    elif file_type in ["jpg", "jpeg", "png"]:
+        buttons.append([InlineKeyboardButton("🎨 Sepia Efekti", callback_data="effect_sepia")])
+        buttons.append([InlineKeyboardButton("⚫ Siyah-Beyaz", callback_data="effect_bw")])
+        buttons.append([InlineKeyboardButton("✨ Netleştir", callback_data="effect_enhance")])
+    
+    elif file_type in ["mp4", "avi", "mov"]:
+        buttons.append([InlineKeyboardButton("🎥 MP4'e Dönüştür", callback_data="convert_mp4")])
+        buttons.append([InlineKeyboardButton("🎞️ AVI'ye Dönüştür", callback_data="convert_avi")])
+    
+    if buttons:
+        buttons.append([InlineKeyboardButton("❌ İptal", callback_data="cancel_convert")])
+        await message.reply_text(
+            "🔮 Bu dosya ile ne yapmak istersin?",
+            reply_markup=InlineKeyboardMarkup(buttons)
+        )
+
+#-----------CALLBACK HANDLERS------------
+@Mukesh.on_callback_query(filters.regex("^convert_|^effect_"))
+async def handle_conversion(client, callback: CallbackQuery):
+    action = callback.data.split('_')[0]
+    target_format = callback.data.split('_')[1]
+    
+    await callback.answer("⏳ İşleme alındı...")
+    original_message = callback.message.reply_to_message
+    
+    try:
+        # Dosyayı indir
+        file_path = await original_message.download()
+        output_path = f"converted_{target_format}.{target_format}"
+        
+        # Dönüşüm işlemleri
+        if action == "convert":
+            if target_format == "sql":
+                await convert_to_sql(file_path, output_path)
+            elif target_format == "csv":
+                await convert_to_csv(file_path, output_path)
+            # Diğer dönüşümler...
+            
+        elif action == "effect":
+            if target_format == "sepia":
+                await apply_sepia(file_path, output_path)
+            elif target_format == "bw":
+                await apply_blackwhite(file_path, output_path)
+            # Diğer efektler...
+        
+        # Kullanıcıya gönder
+        if action == "convert":
+            await callback.message.reply_document(
+                document=output_path,
+                caption=f"✅ Başarıyla {target_format.upper()} formatına dönüştürüldü!"
+            )
+        else:
+            await callback.message.reply_photo(
+                photo=output_path,
+                caption=f"✨ {target_format.upper()} efekti uygulandı!"
+            )
+        
+        # Temizlik
+        os.remove(file_path)
+        os.remove(output_path)
+        
+    except Exception as e:
+        await callback.message.reply_text(f"❌ Dönüşüm hatası: {str(e)}")
+    finally:
+        await callback.message.delete()
+
+# Yardım mesajını güncelle
+HELP_READ = """
+**📌 Kullanım Kılavuzu**
+
+✨ **Fotoğraf Efektleri** (Fotoğrafa yanıt vererek):
+• `/sephia` - Sepia efekti uygular
+• `/bw` - Siyah-beyaz yapar
+• `/enhance` - Fotoğrafı netleştirir
+• `/real` - Gerçekçi renk efekti
+
+🔄 **Dosya Dönüştürme**:
+• Herhangi bir dosya gönderin ve butonlarla seçim yapın
+• Desteklenenler: TXT/CSV/SQL, JPG/PNG, MP4/AVI
+
+📊 **Veritabanı Dönüşümleri**:
+• SQL ↔ CSV otomatik dönüşüm
+• Tablo yapısı sorgulama
+
+**Powered by Deepseek 🌿🍻❤️**
+"""
     
         
         
