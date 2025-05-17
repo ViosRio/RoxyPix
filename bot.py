@@ -142,9 +142,9 @@ LOGO_LINKS = [
 
 @Mukesh.on_message(filters.command(["logo", f"logo@{BOT_USERNAME}"]))
 async def lego(client, message: Message):
-    fname = None  # Başlangıçta None olarak tanımla
+    fname = None
     try:
-        # Komuttan sonra gelen metni al (örnek: /logo Ceren)
+        # Komuttan sonra gelen metni al
         if len(message.command) < 2:
             await message.reply("❌ Lütfen bir metin belirtin.\nÖrnek: `/logo Ceren`")
             return
@@ -155,24 +155,19 @@ async def lego(client, message: Message):
         # Rastgele bir logo arkaplanı seç
         randc = random.choice(LOGO_LINKS)
         response = requests.get(randc)
-        response.raise_for_status()  # HTTP hatalarını yakala
+        response.raise_for_status()
         
         img = Image.open(BytesIO(response.content))
-        
-        # Logo oluşturma işlemleri
         draw = ImageDraw.Draw(img)
         image_widthz, image_heightz = img.size
         
         # Font ayarları
         try:
-            # Önce sistemdeki bir fontu deneyelim
             font = ImageFont.truetype("arial.ttf", 120)
         except:
             try:
-                # Varsa özel fontlarınızı deneyin
                 font = ImageFont.truetype("./fonts/font1.ttf", 120)
             except:
-                # Hiçbiri yoksa varsayılan font
                 font = ImageFont.load_default()
         
         # Metin boyutlarını hesapla
@@ -184,10 +179,10 @@ async def lego(client, message: Message):
         x = (image_widthz - w) / 2
         y = (image_heightz - h) / 2
         
-        # Metni çiz (beyaz renk, siyah kontur)
+        # Metni çiz
         draw.text((x, y), text, font=font, fill="white", stroke_width=2, stroke_fill="black")
         
-        # Geçici dosya adını oluştur
+        # Geçici dosya adı
         fname = f"logo_{message.from_user.id}_{message.id}.png"
         img.save(fname, "PNG")
         
@@ -217,6 +212,7 @@ async def lego(client, message: Message):
                 os.remove(fname)
             except:
                 pass
+
         
 
 
