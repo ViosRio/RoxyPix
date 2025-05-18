@@ -27,7 +27,7 @@ cd RoxyPix
 
 `GEREKEN DEĞERLERİ EDİTLE`
 ```
-$ config.py 
+$ vi config.py 
 ```
 BOTU BAŞLAT `$ bash startup`
 
