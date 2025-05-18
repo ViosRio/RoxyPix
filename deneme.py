@@ -347,45 +347,16 @@ async def lego(client, message: Message):
                         
 
 # Yapay Zeka Görsel Üretme API'si
-import base64
+# Client tanımını en üste taşı
+Mukesh = Client(
+    "chat-gpt",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN
+)
 
-def generate(prompt, width, height, model):
-    url = "https://create.thena.workers.dev/create_image_thena_v5"
-    payload = {
-        "prompt": prompt,
-        "model": model,
-        "creative": False,
-        "width": width,
-        "height": height,
-        "fastMode": False
-    }
-    headers = {
-        'User-Agent': 'thena-free-7-84-994-55664-49485653-MTAwMQ==',
-        'Content-Type': 'application/json'
-    }
-    try:
-        response = requests.post(url, headers=headers, json=payload, timeout=60)
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        return {"status": "error", "message": str(e)}
 
-def control(id):
-    url = f"https://create.thena.workers.dev/status?id={id}"
-    headers = {'User-Agent': 'thena-free-7-84-994-55664-49485653-MTAwMQ=='}
-    try:
-        response = requests.get(url, headers=headers, timeout=60)
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        return {"status": "error", "message": str(e)}
-
-def save_image(base64_data, file_name):
-    try:
-        with open(file_name, "wb") as img_file:
-            img_file.write(base64.b64decode(base64_data))
-        return None
-    except Exception as e:
-        return f"Error saving image: {str(e)}"
-
+# DREAM HANDLER'ı client tanımından sonra tanımla
 @Mukesh.on_message(filters.command(["dream", f"dream@{BOT_USERNAME}"]))
 async def dream_handler(client, message: Message):
     try:
@@ -415,7 +386,7 @@ async def dream_handler(client, message: Message):
         # Görselin hazır olmasını bekle
         generated = False
         attempts = 0
-        while not generated and attempts < 10:  # Max 10 deneme
+        while not generated and attempts < 10:
             check = control(image_id)
             if check.get("status") == 200:
                 generated = True
@@ -435,7 +406,7 @@ async def dream_handler(client, message: Message):
                 else:
                     await msg.edit("❌ Görsel verisi alınamadı")
             elif check.get("status") == 202:
-                await asyncio.sleep(10)  # 10 saniye bekle
+                await asyncio.sleep(10)
                 attempts += 1
             else:
                 await msg.edit(f"❌ Görsel oluşturulamadı: {check.get('message', 'Bilinmeyen hata')}")
@@ -449,7 +420,12 @@ async def dream_handler(client, message: Message):
     finally:
         if 'temp_file' in locals() and os.path.exists(temp_file):
             os.remove(temp_file)
+            
 
+        
+                    
+                    
+        
     
         
                          
