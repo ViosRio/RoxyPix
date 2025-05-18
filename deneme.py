@@ -2,7 +2,6 @@
 import os
 from io import BytesIO  
 import random  
-import base64
 from pyrogram import Client, filters, idle
 from pyrogram.errors import ApiIdInvalid, ApiIdPublishedFlood, AccessTokenInvalid
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
@@ -346,7 +345,9 @@ async def lego(client, message: Message):
         
                 
                         
-# yapay zeka görsel üretme apisi
+
+# Yapay Zeka Görsel Üretme API'si
+import base64
 
 def generate(prompt, width, height, model):
     url = "https://create.thena.workers.dev/create_image_thena_v5"
@@ -429,7 +430,7 @@ async def dream_handler(client, message: Message):
                     await message.reply_photo(
                         photo=temp_file,
                         caption=f"✨ {BOT_NAME} | AI Generated\nModel: {model_Name}\nPrompt: {prompt}",
-                        reply_markup=InlineKeyboardMarkup(PNG_BTN)
+                        reply_markup=InlineKeyboardMarkup(PNG_BTN))
                     await msg.delete()
                 else:
                     await msg.edit("❌ Görsel verisi alınamadı")
@@ -448,7 +449,10 @@ async def dream_handler(client, message: Message):
     finally:
         if 'temp_file' in locals() and os.path.exists(temp_file):
             os.remove(temp_file)
+
+    
         
+                         
         
                         
 
