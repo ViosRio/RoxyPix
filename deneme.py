@@ -73,7 +73,7 @@ HELP_READ = """
 
 ✨ **FOTO STUDYO**:
 
-• /sephia = Fotoğrafa Sepia Efekti Uygular
+• /sepia = Fotoğrafa Sepia Efekti Uygular
 • /black = Siyah-Beyaz Yapar
 • /real = Gerçekçi Renk efekti
 
