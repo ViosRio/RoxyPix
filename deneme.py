@@ -133,12 +133,12 @@ async def black_white_handler(client, message: Message):
         # Efekti uygula
         processed = await apply_blackwhite(photo)
         
-        # Gönder
+        # Gönder (DÜZELTİLMİŞ KISIM)
         await message.reply_photo(
             photo=processed,
             caption=f"✨ {BOT_NAME} | Siyah-Beyaz Efekti",
-            reply_markup=InlineKeyboardMarkup(PNG_BTN)  # Burada parantez kapatıldı
-        )  # Burada da reply_photo fonksiyonunun parantezi kapatıldı
+            reply_markup=InlineKeyboardMarkup(PNG_BTN)
+        )
         
         await msg.delete()
         os.remove(photo)
