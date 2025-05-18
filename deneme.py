@@ -35,13 +35,13 @@ START = """
 MERHABA BEN DEEPSEEK İLE TASARLANAN DOSYA KUYUMCUSU VE FOTOĞRAF EDİTÖRÜYÜM!
 
 ✨ Özelliklerim:
-- Fotoğraf Efektleri (Sepia, Siyah-Beyaz)
+- FOTOGRAF STÜDYO
 - LOGO TASARIM
 
 Powered by Deepseek 🌿🍻❤️
 """
 
-SOURCE = "https://github.com/ViosRio/RoxyTrans"
+SOURCE = "https://github.com/ViosRio/RoxyPix"
 SOURCE_TEXT = "Kaynak Kod: GitHub"
 
 x = ["❤️", "🎉", "✨", "🪸", "🎈", "🎯"]
@@ -75,10 +75,10 @@ HELP_READ = """
 
 • /sepia = Fotoğrafa Sepia Efekti Uygular
 • /black = Siyah-Beyaz Yapar
-• /real = Gerçekçi Renk efekti
+• /real = Tuzlama İşlemi
 
 ❤️ **Logo Fasarım**
-• `/logo` - Logo Tasarım İsim Şenlik
+• /logo = Logo Tasarım İsim Şenlik
 
 **Powered by Deepseek 🌿🍻❤️**
 """
@@ -156,7 +156,7 @@ async def real_effect_handler(client, message: Message):
         # Gönder (DÜZELTİLMİŞ KISIM)
         await message.reply_photo(
             photo=processed,
-            caption=f"✨ {BOT_NAME} | Profesyonel Efekt\n💫 Netleştirme + Çizgi Film Stili",
+            caption=f"✨ {BOT_NAME} | Profesyonel Efekt\n💫 Çizgi Film Stili",
             reply_markup=InlineKeyboardMarkup(PNG_BTN)
         )  # <-- Bu parantez eksikti
         
