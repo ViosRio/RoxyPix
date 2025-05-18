@@ -137,13 +137,16 @@ async def black_white_handler(client, message: Message):
         await message.reply_photo(
             photo=processed,
             caption=f"✨ {BOT_NAME} | Siyah-Beyaz Efekti",
-            reply_markup=InlineKeyboardMarkup(PNG_BTN)
+            reply_markup=InlineKeyboardMarkup(PNG_BTN)  # Burada parantez kapatıldı
+        )  # Burada da reply_photo fonksiyonunun parantezi kapatıldı
         
         await msg.delete()
         os.remove(photo)
         
     except Exception as e:
         await message.reply(f"❌ Hata: {str(e)}")
+        
+    
 
 @Mukesh.on_message(filters.command(["sepia"]) & filters.reply)
 async def sepia_handler(client, message: Message):
