@@ -9,6 +9,10 @@ from pyrogram.types import CallbackQuery
 from config import *
 import requests
 from PIL import Image, ImageDraw, ImageFont
+from PIL import ImageEnhance
+enhancer = ImageEnhance.Contrast(image)
+image = enhancer.enhance(1.5)  
+
 import asyncio, time
 from random import choice
 from datetime import datetime
@@ -68,13 +72,13 @@ PNG_BTN = [
 ]
 
 HELP_READ = """
-**📌 Kullanım Kılavuzu**
+**📌 KLAVUZ**
 
-✨ **Fotoğraf Efektleri**:
-• `/sephia` - Fotoğrafa Sepia efekti uygular
-• `/bw` - Siyah-Beyaz yapar
-• `/enhance` - Fotoğrafı netleştirir
-• `/real` - Gerçekçi renk efekti
+✨ **FOTO STUDYO**:
+
+• /sephia = Fotoğrafa Sepia Efekti Uygular
+• /black = Siyah-Beyaz Yapar
+• /real = Gerçekçi Renk efekti
 
 ❤️ **Logo Fasarım**
 • `/logo` - Logo Tasarım İsim Şenlik
@@ -90,7 +94,7 @@ HELP_BACK = [
 # ----------- PHOTO EDITOR FUNCTIONS -----------
 # ----------- PHOTO EDITOR FUNCTIONS -----------
 async def apply_blackwhite(input_path: str) -> BytesIO:
-    """Siyah-beyaz efekti uygular"""
+    """Siyah-Beyaz Efekti Uygular"""
     image = Image.open(input_path)
     image = image.convert("L")  # Grayscale'e çevir
     output = BytesIO()
@@ -99,7 +103,7 @@ async def apply_blackwhite(input_path: str) -> BytesIO:
     return output
 
 async def apply_sepia(input_path: str) -> BytesIO:
-    """Sepia efekti uygular"""
+    """Sepia Efekti Uygular"""
     image = Image.open(input_path)
     width, height = image.size
     pixels = image.load()
@@ -117,15 +121,63 @@ async def apply_sepia(input_path: str) -> BytesIO:
     output.seek(0)
     return output
 
+# ----------- PHOTO EDITOR FUNCTIONS -----------
+async def apply_real_effect(input_path: str) -> BytesIO:
+    """Fotoğrafı Netleştirir Ve Çizgi Film Efekti Ekler"""
+    from PIL import ImageFilter
+    
+    image = Image.open(input_path)
+    
+    # 1. Netleştirme efekti
+    sharpened = image.filter(ImageFilter.SHARPEN)
+    
+    # 2. Çizgi film efekti (edge enhancement + renk canlandırma)
+    edges = sharpened.filter(ImageFilter.FIND_EDGES)
+    cartoon = Image.blend(sharpened, edges, 0.3)
+    
+    output = BytesIO()
+    cartoon.save(output, format="PNG")
+    output.seek(0)
+    return output
+
+# ----------- EDITOR HANDLERS -----------
+@Mukesh.on_message(filters.command(["real", "enhance"]) & filters.reply)
+async def real_effect_handler(client, message: Message):
+    try:
+        if not message.reply_to_message.photo:
+            await message.reply("❌ Lütfen Bir Fotoğrafı Yanıtlayın!")
+            return
+            
+        msg = await message.reply("🎨 Fotoğrafa Profesyonel Efektler Uygulanıyor...")
+        
+        # Fotoğrafı indir
+        photo = await message.reply_to_message.download()
+        
+        # Efekti uygula
+        processed = await apply_real_effect(photo)
+        
+        # Gönder
+        await message.reply_photo(
+            photo=processed,
+            caption=f"✨ {BOT_NAME} | Profesyonel Efekt\n💫 Netleştirme + Çizgi Film Stili",
+            reply_markup=InlineKeyboardMarkup(PNG_BTN)
+        
+        await msg.delete()
+        os.remove(photo)
+        
+    except Exception as e:
+        await message.reply(f"❌ Hata: {str(e)}")
+
+
 # ----------- EDITOR HANDLERS -----------
 @Mukesh.on_message(filters.command(["black", "bw"]) & filters.reply)
 async def black_white_handler(client, message: Message):
     try:
         if not message.reply_to_message.photo:
-            await message.reply("❌ Lütfen bir fotoğrafı yanıtlayın!")
+            await message.reply("❌ Lütfen Bir Fotoğrafı Yanıtlayın!")
             return
             
-        msg = await message.reply("🔄 Fotoğraf siyah-beyaz yapılıyor...")
+        msg = await message.reply("🔄 Fotoğraf Siyah-Beyaz Yapılıyor...")
         
         # Fotoğrafı indir
         photo = await message.reply_to_message.download()
@@ -152,10 +204,10 @@ async def black_white_handler(client, message: Message):
 async def sepia_handler(client, message: Message):
     try:
         if not message.reply_to_message.photo:
-            await message.reply("❌ Lütfen bir fotoğrafı yanıtlayın!")
+            await message.reply("❌ Lütfen Bir Fotoğrafı Yanıtlayın!")
             return
             
-        msg = await message.reply("🔄 Sepia efekti uygulanıyor...")
+        msg = await message.reply("🔄 Sepia Efekti Uygulanıyor...")
         
         # Fotoğrafı indir
         photo = await message.reply_to_message.download()
