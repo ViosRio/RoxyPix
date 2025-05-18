@@ -2,6 +2,7 @@
 import os
 from io import BytesIO  
 import random  
+import base64
 from pyrogram import Client, filters, idle
 from pyrogram.errors import ApiIdInvalid, ApiIdPublishedFlood, AccessTokenInvalid
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
@@ -362,7 +363,7 @@ def generate(prompt, width, height, model):
         'Content-Type': 'application/json'
     }
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=60)  # Timeout artırıldı.
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
         return response.json()
     except requests.exceptions.RequestException as e:
         return {"status": "error", "message": str(e)}
@@ -371,7 +372,7 @@ def control(id):
     url = f"https://create.thena.workers.dev/status?id={id}"
     headers = {'User-Agent': 'thena-free-7-84-994-55664-49485653-MTAwMQ=='}
     try:
-        response = requests.get(url, headers=headers, timeout=60)  # Timeout artırıldı.
+        response = requests.get(url, headers=headers, timeout=60)
         return response.json()
     except requests.exceptions.RequestException as e:
         return {"status": "error", "message": str(e)}
@@ -380,55 +381,76 @@ def save_image(base64_data, file_name):
     try:
         with open(file_name, "wb") as img_file:
             img_file.write(base64.b64decode(base64_data))
+        return None
     except Exception as e:
         return f"Error saving image: {str(e)}"
-    return None
 
 @Mukesh.on_message(filters.command(["dream", f"dream@{BOT_USERNAME}"]))
-def prompt_request(message):
-    bot.reply_to(message, "GÜZEL, ŞİMDİ RÜYANI\n\n[ İNGİLİZCE DİLİ OLARAK DÜŞLE ]")
-
-
-@Mukesh.on_message(handler.func=(["lambda", message: True)
-def process_prompt(message):
-    prompt = message.text.replace("/dream", "").strip()
-    if not prompt:
-        bot.reply_to(message, "Lütfen bir sahne tarif edin!")
-        return
-    
-    bot.reply_to(message, f"Görsel İşleniyor...\nPrompt: {prompt}")
-    
+async def dream_handler(client, message: Message):
     try:
-        model_ID = "5g72h1 y661hp k771ns 33bb21 77bagl 6b 3090" if "anime" in prompt else "754019 b5df2e e606f1 a7600b 96b0c8 94"
-        model_Name = "Anime Core" if "anime" in prompt else "Photoreal"
-        result = generate(prompt, 768, 1024, model_ID)
-
-        if result.get("status") != 200:
-            bot.reply_to(message, f"Görsel Oluşturulamadı: {result.get('message', 'Bilinmeyen hata')}")
+        if len(message.command) < 2:
+            await message.reply("❌ Lütfen bir prompt girin!\nÖrnek: `/dream futuristic city`")
             return
+
+        prompt = " ".join(message.command[1:])
+        msg = await message.reply(f"🎨 AI görsel oluşturuluyor...\nPrompt: {prompt}")
+
+        # Model seçimi
+        model_ID = "5g72h1 y661hp k771ns 33bb21 77bagl 6b 3090" if "anime" in prompt.lower() else "754019 b5df2e e606f1 a7600b 96b0c8 94"
+        model_Name = "Anime Core" if "anime" in prompt.lower() else "Photoreal"
+
+        # Görsel oluşturma
+        result = generate(prompt, 768, 1024, model_ID)
         
+        if result.get("status") != 200:
+            await msg.edit(f"❌ Görsel oluşturulamadı: {result.get('message', 'Bilinmeyen hata')}")
+            return
+
+        image_id = result.get("id")
+        if not image_id:
+            await msg.edit("❌ Görsel ID'si alınamadı")
+            return
+
+        # Görselin hazır olmasını bekle
         generated = False
-        while not generated:
-            check = control(result.get("image"))
+        attempts = 0
+        while not generated and attempts < 10:  # Max 10 deneme
+            check = control(image_id)
             if check.get("status") == 200:
                 generated = True
                 base64_image = check.get("image")
                 if base64_image:
-                    save_error = save_image(base64_image, "output.jpg")
+                    temp_file = f"dream_{message.from_user.id}.jpg"
+                    save_error = save_image(base64_image, temp_file)
                     if save_error:
-                        bot.reply_to(message, f"Görsel kaydedilemedi: {save_error}")
+                        await msg.edit(f"❌ Görsel kaydedilemedi: {save_error}")
                         return
-                    with open("output.jpg", "rb") as img:
-                        bot.send_photo(message.chat.id, img, caption=f"✨ Resim Oluşturuldu\nModel :: {model_Name}")
+                    
+                    await message.reply_photo(
+                        photo=temp_file,
+                        caption=f"✨ {BOT_NAME} | AI Generated\nModel: {model_Name}\nPrompt: {prompt}",
+                        reply_markup=InlineKeyboardMarkup(PNG_BTN)
+                    await msg.delete()
                 else:
-                    bot.reply_to(message, "Görsel verisi alınamadı. Lütfen tekrar deneyin.")
+                    await msg.edit("❌ Görsel verisi alınamadı")
             elif check.get("status") == 202:
-                time.sleep(10)  # Görsel oluşturulmadıysa 10 saniye bekle
+                await asyncio.sleep(10)  # 10 saniye bekle
+                attempts += 1
             else:
-                bot.reply_to(message, f"Görsel oluşturulamadı. Durum: {check.get('status')}")
-                generated = True
+                await msg.edit(f"❌ Görsel oluşturulamadı: {check.get('message', 'Bilinmeyen hata')}")
+                return
+
+        if not generated:
+            await msg.edit("❌ Görsel oluşturma zaman aşımına uğradı")
+
     except Exception as e:
-        bot.reply_to(message, f"Hata oluştu: {str(e)}")
+        await message.reply(f"❌ Hata: {str(e)}")
+    finally:
+        if 'temp_file' in locals() and os.path.exists(temp_file):
+            os.remove(temp_file)
+        
+        
+                        
 
 
 # ... (Diğer handler'lar aynı şekilde devam eder)
