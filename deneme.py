@@ -9,9 +9,6 @@ from pyrogram.types import CallbackQuery
 from config import *
 import requests
 from PIL import Image, ImageDraw, ImageFont
-from PIL import ImageEnhance
-enhancer = ImageEnhance.Contrast(image)
-image = enhancer.enhance(1.5)  
 
 import asyncio, time
 from random import choice
@@ -156,18 +153,21 @@ async def real_effect_handler(client, message: Message):
         # Efekti uygula
         processed = await apply_real_effect(photo)
         
-        # Gönder
+        # Gönder (DÜZELTİLMİŞ KISIM)
         await message.reply_photo(
             photo=processed,
             caption=f"✨ {BOT_NAME} | Profesyonel Efekt\n💫 Netleştirme + Çizgi Film Stili",
             reply_markup=InlineKeyboardMarkup(PNG_BTN)
+        )  # <-- Bu parantez eksikti
         
         await msg.delete()
         os.remove(photo)
         
     except Exception as e:
         await message.reply(f"❌ Hata: {str(e)}")
-
+        
+        
+    
 
 # ----------- EDITOR HANDLERS -----------
 @Mukesh.on_message(filters.command(["black", "bw"]) & filters.reply)
